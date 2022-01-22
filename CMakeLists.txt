@@ -21,12 +21,22 @@ ament_auto_find_build_dependencies()
 
 ament_auto_add_library(${PROJECT_NAME} SHARED
   src/libuvc_cam.cpp
+  src/libuvc_cam_node.cpp
+)
+
+rclcpp_components_register_node(${PROJECT_NAME}
+  PLUGIN "libuvc_cam::UvcCameraNode"
+  EXECUTABLE ${PROJECT_NAME}_node
 )
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
 endif()
+
+install(FILES example.rules
+  DESTINATION share/${PROJECT_NAME}
+)
 
 ament_auto_package(
   INSTALL_TO_SHARE

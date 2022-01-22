@@ -18,51 +18,34 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#ifndef LIBUVC_CAM__LIBUVC_CAM_HPP_
-#define LIBUVC_CAM__LIBUVC_CAM_HPP_
-
-extern "C" {
-#include <libuvc/libuvc.h>
-}
-
-#include <rclcpp/logging.hpp>
+#include <libuvc_cam/libuvc_cam_node.hpp>
 
 #include <memory>
 #include <string>
-#include <stdexcept>
 
 namespace libuvc_cam
 {
 
-class UvcCamera
+UvcCameraNode::UvcCameraNode(const rclcpp::NodeOptions & options)
+: rclcpp::Node("uvc_camera_node", options)
 {
-public:
-  UvcCamera(
-    const std::string & vendor_id,
-    const std::string & product_id,
-    const std::string & ser_num);
-  ~UvcCamera();
+  auto vendor_id_param = declare_parameter("vendor_id");
+  auto product_id_param = declare_parameter("product_id");
+  std::string serial_num = declare_parameter<std::string>("serial_num", "");
 
-private:
-  uvc_context_t * m_ctx = nullptr;
-  uvc_device_t * m_dev = nullptr;
-  uvc_device_handle_t * m_handle = nullptr;
-};
-
-// Source: https://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
-template<typename ... Args>
-std::string string_format(const std::string & format, Args ... args)
-{
-  int size_s = std::snprintf(nullptr, 0, format.c_str(), args ...) + 1;
-  if (size_s <= 0) {
-    throw std::runtime_error{"Error during formatting."};
+  if (vendor_id_param.get_type() == rclcpp::PARAMETER_NOT_SET) {
+    throw rclcpp::exceptions::InvalidParameterValueException{"vendor_id is missing."};
+  } else if (product_id_param.get_type() == rclcpp::PARAMETER_NOT_SET) {
+    throw rclcpp::exceptions::InvalidParameterValueException{"product_id is missing."};
+  } else {
+    m_camera = std::make_unique<UvcCamera>(
+      vendor_id_param.get<std::string>(),
+      product_id_param.get<std::string>(),
+      serial_num);
   }
-  auto size = static_cast<size_t>(size_s);
-  auto buf = std::make_unique<char[]>(size);
-  std::snprintf(buf.get(), size, format.c_str(), args ...);
-  return std::string(buf.get(), buf.get() + size - 1);
 }
 
 }  // namespace libuvc_cam
 
-#endif  // LIBUVC_CAM__LIBUVC_CAM_HPP_
+#include "rclcpp_components/register_node_macro.hpp"
+RCLCPP_COMPONENTS_REGISTER_NODE(libuvc_cam::UvcCameraNode)

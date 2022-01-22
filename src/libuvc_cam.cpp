@@ -21,6 +21,7 @@
 #include <libuvc_cam/libuvc_cam.hpp>
 
 #include <cstdio>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 
