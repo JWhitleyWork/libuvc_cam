@@ -19,10 +19,15 @@ endif()
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
+find_package(libuvc REQUIRED)
+
 ament_auto_add_library(${PROJECT_NAME} SHARED
   src/libuvc_cam.cpp
   src/libuvc_cam_node.cpp
 )
+
+target_include_directories(${PROJECT_NAME} PUBLIC ${libuvc_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} ${libuvc_LIBRARIES})
 
 rclcpp_components_register_node(${PROJECT_NAME}
   PLUGIN "libuvc_cam::UvcCameraNode"
