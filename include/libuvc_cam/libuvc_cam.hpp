@@ -34,6 +34,13 @@ extern "C" {
 namespace libuvc_cam
 {
 
+enum class FrameFormat
+{
+  ANY,
+  UNCOMPRESSED,
+  MJPEG
+};
+
 class UvcCamera
 {
 public:
@@ -42,6 +49,9 @@ public:
     const std::string & product_id,
     const std::string & ser_num);
   ~UvcCamera();
+
+  bool format_is_supported(const FrameFormat fmt, int width, int height, int fps);
+  void print_supported_formats();
 
 private:
   uvc_context_t * m_ctx = nullptr;

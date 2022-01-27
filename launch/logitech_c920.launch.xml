@@ -1,0 +1,5 @@
+<launch>
+  <node name="leopard_imaging_libuvc_cam" pkg="libuvc_cam" exec="libuvc_cam_node">
+    <param from="$(find-pkg-share libuvc_cam)/config/logitech_c920.yaml" />
+  </node>
+</launch>

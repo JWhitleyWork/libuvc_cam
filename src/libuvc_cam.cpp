@@ -22,6 +22,7 @@
 
 #include <cstdio>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 #include <string>
 
@@ -100,6 +101,98 @@ UvcCamera::~UvcCamera()
   if (m_ctx != nullptr) {
     uvc_exit(m_ctx);
   }
+}
+
+bool UvcCamera::format_is_supported(const FrameFormat fmt, int width, int height, int fps)
+{
+  if (fmt == FrameFormat::ANY && width == 0 && height == 0 && fps == 0) {
+    return true;
+  }
+
+  bool fmt_found = false;
+  bool width_found = false;
+  bool height_found = false;
+  bool fps_found = false;
+
+  // Loop through interface format descriptors (DLL)
+  const uvc_format_desc_t * format_desc = uvc_get_format_descs(m_handle);
+  while (format_desc) {
+    fmt_found = (fmt == FrameFormat::ANY);
+    width_found = (width == 0);
+    height_found = (height == 0);
+    fps_found = (fps == 0);
+
+    switch (format_desc->bDescriptorSubtype) {
+      case UVC_VS_FORMAT_UNCOMPRESSED:
+      case UVC_VS_FORMAT_MJPEG:
+      case UVC_VS_FORMAT_FRAME_BASED:
+        {
+          // Loop through frame format descriptors (DLL)
+          const uvc_frame_desc_t * frame_desc = format_desc->frame_descs;
+          while (frame_desc) {
+            switch (frame_desc->bDescriptorSubtype) {
+              case UVC_VS_FRAME_UNCOMPRESSED:
+                if (fmt == FrameFormat::UNCOMPRESSED) {
+                  fmt_found = true;
+                }
+                break;
+              case UVC_VS_FRAME_MJPEG:
+                if (fmt == FrameFormat::MJPEG) {
+                  fmt_found = true;
+                }
+                break;
+              default:
+                break;
+            }
+
+            if (fmt_found) {
+              if (width != 0 && static_cast<int>(frame_desc->wWidth) == width) {
+                width_found = true;
+              }
+
+              if (height != 0 && static_cast<int>(frame_desc->wHeight) == height) {
+                height_found = true;
+              }
+
+              const auto default_fps =
+                static_cast<int32_t>(10000000 / frame_desc->dwDefaultFrameInterval);
+              if (default_fps == fps) {
+                fps_found = true;
+              } else if (frame_desc->intervals) {
+                // Check non-default frame interval
+                uint32_t * interval_ptr = nullptr;
+
+                for (interval_ptr = frame_desc->intervals; *interval_ptr; ++interval_ptr) {
+                  const auto interval_fps = static_cast<int32_t>(10000000 / *interval_ptr);
+
+                  if (interval_fps == fps) {
+                    fps_found = true;
+                    break;
+                  }
+                }
+              }
+            }
+
+            frame_desc = frame_desc->next;
+          }
+        } break;
+      default:
+        break;
+    }
+
+    if (fmt_found && width_found && height_found && fps_found) {
+      break;
+    }
+
+    format_desc = format_desc->next;
+  }
+
+  return fmt_found && width_found && height_found && fps_found;
+}
+
+void UvcCamera::print_supported_formats()
+{
+  uvc_print_diag(m_handle, stderr);
 }
 
 }  // namespace libuvc_cam
