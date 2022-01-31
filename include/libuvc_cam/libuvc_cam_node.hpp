@@ -21,9 +21,11 @@
 #ifndef LIBUVC_CAM__LIBUVC_CAM_NODE_HPP_
 #define LIBUVC_CAM__LIBUVC_CAM_NODE_HPP_
 
+#include <image_transport/image_transport.hpp>
 #include <libuvc_cam/libuvc_cam.hpp>
 #include <rclcpp/rclcpp.hpp>
 
+#include <string>
 #include <memory>
 
 namespace libuvc_cam
@@ -35,7 +37,11 @@ public:
   explicit UvcCameraNode(const rclcpp::NodeOptions & options);
 
 private:
+  void frame_callback(UvcFrame * frame);
+
+  std::string m_frame{};
   std::unique_ptr<UvcCamera> m_camera{};
+  image_transport::Publisher m_image_pub{};
 };
 
 }  // namespace libuvc_cam
