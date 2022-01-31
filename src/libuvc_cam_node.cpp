@@ -21,6 +21,7 @@
 #include <libuvc_cam/libuvc_cam_node.hpp>
 
 #include <image_transport/image_transport.hpp>
+#include <sensor_msgs/image_encodings.hpp>
 #include <sensor_msgs/msg/image.hpp>
 
 #include <memory>
@@ -120,6 +121,52 @@ void UvcCameraNode::frame_callback(UvcFrame * frame)
   img.height = frame->height;
   img.width = frame->width;
   img.step = frame->step;
+
+  switch (frame->frame_format) {
+    case UvcFrameFormat::YUYV:
+      img.encoding = sensor_msgs::image_encodings::YUV422_YUY2;
+      break;
+    case UvcFrameFormat::UYVY:
+      img.encoding = sensor_msgs::image_encodings::YUV422;
+      break;
+    case UvcFrameFormat::RGB:
+      img.encoding = sensor_msgs::image_encodings::RGB8;
+      break;
+    case UvcFrameFormat::BGR:
+      img.encoding = sensor_msgs::image_encodings::BGR8;
+      break;
+    case UvcFrameFormat::MJPEG:
+      // Can't decode this format.
+      break;
+    case UvcFrameFormat::H264:
+      // Can't decode this format.
+      break;
+    case UvcFrameFormat::GRAY8:
+      img.encoding = sensor_msgs::image_encodings::MONO8;
+      break;
+    case UvcFrameFormat::GRAY16:
+      img.encoding = sensor_msgs::image_encodings::MONO16;
+      break;
+    case UvcFrameFormat::BY8:
+      // Not supported
+      break;
+    case UvcFrameFormat::BA81:
+    case UvcFrameFormat::SBGGR8:
+      img.encoding = sensor_msgs::image_encodings::BAYER_BGGR8;
+      break;
+    case UvcFrameFormat::SGRBG8:
+      img.encoding = sensor_msgs::image_encodings::BAYER_GRBG8;
+      break;
+    case UvcFrameFormat::SGBRG8:
+      img.encoding = sensor_msgs::image_encodings::BAYER_GBRG8;
+      break;
+    case UvcFrameFormat::SRGGB8:
+      img.encoding = sensor_msgs::image_encodings::BAYER_RGGB8;
+      break;
+    case UvcFrameFormat::NV12:
+      // Not supported
+      break;
+  }
 
   m_image_pub.publish(img);
 }

@@ -72,6 +72,7 @@ UvcCamera::UvcCamera(
   const std::string & vendor_id,
   const std::string & product_id,
   const std::string & ser_num)
+: m_streaming{false}
 {
   // Parse vendor ID and product ID
   int vid{}, pid{};
@@ -129,6 +130,10 @@ UvcCamera::UvcCamera(
 
 UvcCamera::~UvcCamera()
 {
+  if (m_streaming) {
+    stop_streaming();
+  }
+
   if (m_handle != nullptr) {
     uvc_close(m_handle);
   }
@@ -241,6 +246,7 @@ void UvcCamera::print_supported_formats()
 
 void UvcCamera::start_streaming()
 {
+  m_streaming = true;
 }
 
 void UvcCamera::start_streaming_with_format(
@@ -451,6 +457,12 @@ void UvcCamera::start_streaming_with_format(
 void UvcCamera::stop_streaming()
 {
   uvc_stop_streaming(m_handle);
+  m_streaming = false;
+}
+
+bool UvcCamera::is_streaming() const
+{
+  return m_streaming;
 }
 
 }  // namespace libuvc_cam

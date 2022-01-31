@@ -25,10 +25,9 @@ extern "C" {
 #include <libuvc/libuvc.h>
 }
 
-#include <rclcpp/logging.hpp>
-
 #include <array>
 #include <chrono>
+#include <functional>
 #include <memory>
 #include <string>
 #include <stdexcept>
@@ -275,6 +274,7 @@ public:
   void start_streaming();
   void start_streaming_with_format(const StreamFormat fmt, int width, int height, int fps);
   void stop_streaming();
+  bool is_streaming() const;
 
   std::unique_ptr<std::function<void(UvcFrame *)>> m_user_ptr{};
 
@@ -283,6 +283,7 @@ private:
   uvc_device_t * m_dev = nullptr;
   uvc_device_handle_t * m_handle = nullptr;
   uvc_stream_ctrl_t m_ctrl;
+  bool m_streaming;
 };
 
 // Source: https://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
